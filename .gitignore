@@ -1,0 +1,28 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Secrets / local config
+.env
+*.env
+mock.json
+
+# Generated capture / media (bench data, not shippable)
+*.mp4
+ixy
+ixy2
+in.ixy
