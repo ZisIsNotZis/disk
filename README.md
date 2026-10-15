@@ -32,13 +32,11 @@ than *outdated* — PyTorch + SciPy + scikit-learn are still the current stack.
 
 - **Owner-authored:** `disk.py`, `disk0.py`, `disk1.py`, `disk2.py`, `nn.py`,
   `tmpmodbus.py`, `tmpmv.py`, `__main__.py`, `closed_form.ipynb`,
-  `Untitled*.ipynb`. No licence is attached; they default to all-rights-reserved.
-- **Third-party, vendored:** `MvCameraControl_class.py`, `CameraParams_const.py`,
-  `CameraParams_header.py`, `MvErrorDefine_const.py`, `PixelType_header.py`.
-  These are generated HIKROBOT MVS SDK bindings (bilingual generated doc comments,
-  `MV_*` ctypes structs, `WinDLL("MvCameraControl.dll")` loader). They are kept
-  here only because they ship in the same scratch tree; consume the SDK as an
-  external dependency instead of copying them.
+  `Untitled*.ipynb`. The repository's [`LICENSE`](LICENSE) is AGPL-3.0-only.
+- **Third-party SDK:** `tmpmv.py` and `__main__.py` depend on HIKROBOT MVS;
+  the generated SDK bindings (`MvCameraControl_class.py`,
+  `CameraParams_header.py`, etc.) are not included in this repository. The
+  repository license does not grant rights to redistribute the SDK.
 
 ## How to run
 
