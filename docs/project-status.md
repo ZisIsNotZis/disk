@@ -1,60 +1,51 @@
-# disk project status
+# disk — archive record
+
+Source: **INFERRED** from the published tree and the migration log. `README.md` is the public face; this file is the detailed record of what was migrated, what was removed, and what still cannot be reproduced.
 
 ## Classification
 
-Archive: a personal scratch directory, not a project. It bundles
-(1) unreproducible bench experiments that invert a 2-D thermal-diffusion plant
-with `scipy.optimize` and PyTorch/scikit-learn surrogates and (2) industrial-camera
-SDK bindings plus minio/object-storage helper code. Kept for reference only.
+Archive: a personal scratch directory, not a product. It bundles two unrelated threads:
 
-## Status
+1. **Thermal-control / machine-vision experiments** — steering a physical 2-D heated plate (47 Modbus set-points, 34 IR sensor channels) toward a target field with online least squares, `scipy.optimize`, and PyTorch / scikit-learn surrogates (`disk*.py`, `nn.py`, `closed_form.ipynb`, `Untitled*.ipynb`).
+2. **Industrial-camera SDK wrappers and object-storage plumbing** — HIKROBOT MVS camera capture, a HALCON inspection loop, MQTT job messages and MinIO uploads (`tmpmv.py`, `__main__.py`).
 
-Archive — scratch tooling, kept for reference. Never became a project: no tests,
-no packaging, no README/LICENSE upstream, single-letter naming and
-`Untitled*.ipynb` filenames. It is unreproducible rather than outdated — the
-stack (PyTorch / SciPy / scikit-learn) is still current, but re-execution needs
-the original bench, capture files (`ixy`, `ixy2`, `in.ixy`), a `mock.json` config,
-a MVTec HALCON licence, a MinIO server, an MQTT broker and QSV-capable ffmpeg.
+Kept for reference only. It never became a project: no tests, no packaging, no data files, single-letter naming and `Untitled*.ipynb` filenames.
 
-## Evidence
+## Inventory
 
-- `closed_form.ipynb` — analytic Green's-function solution for the same
-  diffusion-decay PDE, usable as a self-contained ground-truth check; the only
-  artifact that can be executed without lab hardware.
-- `disk.py`, `disk0.py`, `disk1.py`, `disk2.py`, `nn.py` — a coherent personal
-  investigation (steer 47 set-points / read 34 IR channels toward a target), in
-  one consistent author idiom.
-- `__main__.py` — HALCON + HIKROBOT + MQTT + MinIO inspection-pipeline prototype;
-  documents how the camera/SDK plumbing was wired.
-- `MvCameraControl_class.py`, `CameraParams_header.py`, `CameraParams_const.py`,
-  `MvErrorDefine_const.py`, `PixelType_header.py` — **third-party** generated
-  HIKROBOT MVS SDK bindings (bilingual generated comments, `MV_*` ctypes structs,
-  `WinDLL`/`CDLL` loader). Vendored, not owner's work.
+- **Owner-authored:** `disk.py`, `disk0.py`, `disk1.py`, `disk2.py`, `nn.py`, `tmpmodbus.py`, `tmpmv.py`, `__main__.py`, `closed_form.ipynb`, `Untitled*.ipynb`, `README.md`, `docs/project-status.md`.
+- **Third-party, not included:** the generated HIKROBOT MVS Python bindings (`MvCameraControl_class.py`, `CameraParams_header.py`, `CameraParams_const.py`, `MvErrorDefine_const.py`, `PixelType_header.py`) were removed before publication. `tmpmv.py` and `__main__.py` still depend on them; install the SDK externally.
+- **Not included:** capture files (`ixy`, `ixy2`, `in.ixy`), `mock.json`, images and `.mp4` files. The `.gitignore` excludes them.
+- **License:** [`LICENSE`](../LICENSE) is AGPL-3.0-only for owner-authored code. It does not grant rights to redistribute the HIKROBOT MVS SDK or to use MVTec HALCON without a licence.
+
+## What can be executed
+
+- `nn.py` — importable; it only defines `Scale`.
+- `closed_form.ipynb` — the analytical transient, steady-state and differentiable solvers are self-contained in principle (NumPy / SciPy / PyTorch), with no lab hardware required. The notebook has no stored outputs and was not re-executed during migration. Some cells are expensive by construction.
+- `Untitled*.ipynb` — the simulator cells can run standalone; the cells that read `ixy` / `ixy2` cannot.
+- **Correction:** `disk.py` is not import-safe. Its module-level code opens `in.ixy` and connects to the Modbus PLC and sensor socket on import. The same applies to `disk0.py`, `disk1.py`, `disk2.py`, `tmpmodbus.py` and `__main__.py`, which all execute hardware or file setup at import time.
+- No end-to-end entrypoint exists. The scripts need the private bench network, capture files, a MVTec HALCON licence, the HIKROBOT MVS SDK, a MinIO server, an MQTT broker and an ffmpeg build with Intel QSV.
 
 ## Boundaries
 
-- **Credential:** `__main__.py` contained a literal object-storage
-  access-key/secret-key pair. It was removed during migration and replaced by
-  `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` environment lookups. **The credential
-  must be rotated by the owner** — it sat in a plaintext scratch file.
-- **Network:** internal/private hosts in `disk*.py`, `tmpmodbus.py` and
-  `Untitled-Copy1.ipynb` were replaced with `<REDACTED:...>` placeholders.
-- **Licensing:** owner-authored files carry no licence (all-rights-reserved by
-  default); the five vendored SDK binding files are third-party and should be
-  dropped in favour of an external SDK dependency.
-- **Provenance:** the HALCON inspection workflow and its MQTT topic schema encode
-  an employer production process; general business is fine, internals are not.
-  Not yet genericised — review before any wider publication.
-- **Reproducibility:** no runnable entrypoint and no dependency lockfile; the
-  dependency list in `README.md` is reconstructed from imports.
-- **Scope:** migrating this directory does not imply support; it is an archive
-  entry.
+- **Credential:** `__main__.py` contained a literal object-storage access-key/secret-key pair. It was removed and replaced by `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` environment lookups. **The credential must be rotated by the owner** — it sat in a plaintext scratch file.
+- **Network:** internal/private hosts in `disk.py`, `disk0.py`, `disk1.py`, `disk2.py`, `tmpmodbus.py` and `Untitled-Copy1.ipynb` were replaced with `<REDACTED:...>` placeholders. Loopback references use `localhost`.
+- **Licensing:** owner-authored files are AGPL-3.0-only. The five vendored SDK binding files are third-party and were removed; consume the vendor SDK as an external dependency.
+- **Provenance:** the HALCON inspection workflow and its MQTT topic schema encode an employer production process. The topics were genericised (`alg/ipc/job` → `demo/vision/job`, `be/` and `ipc/` job-result paths, `be/cfg`), but the workflow itself is still employer-derived. Review before any wider publication.
+- **Reproducibility:** no runnable entrypoint, no dependency lockfile, no recorded versions. The dependency list in `README.md` is reconstructed from imports.
+- **Scope:** migrating this directory does not imply support. It is an archive entry.
 
 ## Publication removals
 
-- The five vendored HIKROBOT MVS SDK bindings (`MvCameraControl_class.py`,
-  `CameraParams_header.py`, `CameraParams_const.py`, `MvErrorDefine_const.py`,
-  `PixelType_header.py`) were removed before publication: they are third-party
-  SDK code, not the owner's work. Install the SDK externally instead.
-- Employer-internal MQTT topic names in `__main__.py` were genericised
-  (`alg/ipc/job` -> `demo/vision/job`, `be/`/`ipc/` job-result paths, `be/cfg`).
+- Five generated HIKROBOT MVS SDK bindings were removed: `MvCameraControl_class.py`, `CameraParams_header.py`, `CameraParams_const.py`, `MvErrorDefine_const.py`, `PixelType_header.py`.
+- The MinIO literal credential was removed from `__main__.py` and replaced with environment lookups.
+- Internal hosts and private IPs were replaced with `<REDACTED:...>` placeholders.
+- Employer-internal MQTT topic names were genericised.
+- Capture files, images, videos and local config (`mock.json`) were excluded from the repository.
+
+## Corrections to earlier migration notes
+
+- `LICENSE` now exists and is AGPL-3.0-only; an earlier note said owner-authored files were unlicensed and all-rights-reserved.
+- `README.md` now exists; an earlier note said the original tree had no README.
+- The SDK bindings are absent; an earlier evidence list named them as if they were present.
+- `disk.py` is not import-safe; an earlier README claimed its Modbus and socket imports were unused at import time.
