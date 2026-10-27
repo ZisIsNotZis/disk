@@ -1,6 +1,6 @@
 # disk — archive record
 
-Source: **INFERRED** from the published tree and the migration log. `README.md` is the public face; this file is the detailed record of what was migrated, what was removed, and what still cannot be reproduced.
+Source: **INFERRED** from the published tree and the migration log. `README.md` and `README.zh-CN.md` are the public face; this file is the detailed record of what was migrated, what was removed, and what still cannot be reproduced.
 
 ## Classification
 
@@ -13,7 +13,7 @@ Kept for reference only. It never became a project: no tests, no packaging, no d
 
 ## Inventory
 
-- **Owner-authored:** `disk.py`, `disk0.py`, `disk1.py`, `disk2.py`, `nn.py`, `tmpmodbus.py`, `tmpmv.py`, `__main__.py`, `closed_form.ipynb`, `Untitled*.ipynb`, `README.md`, `docs/project-status.md`.
+- **Owner-authored:** `disk.py`, `disk0.py`, `disk1.py`, `disk2.py`, `nn.py`, `tmpmodbus.py`, `tmpmv.py`, `__main__.py`, `closed_form.ipynb`, `Untitled*.ipynb`, `README.md`, `README.zh-CN.md`, `CONTRIBUTING.md`, `assets/logo.svg`, `docs/project-status.md`.
 - **Third-party, not included:** the generated HIKROBOT MVS Python bindings (`MvCameraControl_class.py`, `CameraParams_header.py`, `CameraParams_const.py`, `MvErrorDefine_const.py`, `PixelType_header.py`) were removed before publication. `tmpmv.py` and `__main__.py` still depend on them; install the SDK externally.
 - **Not included:** capture files (`ixy`, `ixy2`, `in.ixy`), `mock.json`, images and `.mp4` files. The `.gitignore` excludes them.
 - **License:** [`LICENSE`](../LICENSE) is AGPL-3.0-only for owner-authored code. It does not grant rights to redistribute the HIKROBOT MVS SDK or to use MVTec HALCON without a licence.
@@ -33,7 +33,7 @@ Kept for reference only. It never became a project: no tests, no packaging, no d
 - **Licensing:** owner-authored files are AGPL-3.0-only. The five vendored SDK binding files are third-party and were removed; consume the vendor SDK as an external dependency.
 - **Provenance:** the HALCON inspection workflow and its MQTT topic schema encode an employer production process. The topics were genericised (`alg/ipc/job` → `demo/vision/job`, `be/` and `ipc/` job-result paths, `be/cfg`), but the workflow itself is still employer-derived. Review before any wider publication.
 - **Reproducibility:** no runnable entrypoint, no dependency lockfile, no recorded versions. The dependency list in `README.md` is reconstructed from imports.
-- **Scope:** migrating this directory does not imply support. It is an archive entry.
+- **Scope:** migrating this directory does not imply support. It is an archive entry. No CI workflows are included by design.
 
 ## Publication removals
 
@@ -46,6 +46,6 @@ Kept for reference only. It never became a project: no tests, no packaging, no d
 ## Corrections to earlier migration notes
 
 - `LICENSE` now exists and is AGPL-3.0-only; an earlier note said owner-authored files were unlicensed and all-rights-reserved.
-- `README.md` now exists; an earlier note said the original tree had no README.
+- `README.md` and `README.zh-CN.md` now exist; an earlier note said the original tree had no README.
 - The SDK bindings are absent; an earlier evidence list named them as if they were present.
 - `disk.py` is not import-safe; an earlier README claimed its Modbus and socket imports were unused at import time.

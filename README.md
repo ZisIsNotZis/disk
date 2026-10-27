@@ -1,16 +1,39 @@
-<p align="center"><img src="assets/logo.svg" width="88" alt="disk — a heated plate with a sensor grid"></p>
+**English** | [简体中文](README.zh-CN.md)
+
+<p align="center"><img src="assets/logo.svg" width="96" alt="disk logo: a heated plate with a sensor grid"></p>
 
 # disk
 
-**A real closed-loop thermal-control experiment: 47 heater set-points, 34 IR channels, and the inverse models that learned to steer one from the other.**
+### Closed-loop system identification on a 2-D heated plate
 
-**Status: archive.** This is a sanitised snapshot, not a maintained project. The bench is gone, so nothing here runs end-to-end; the value is the control loop, the surrogate models and an analytical ground truth, kept together as a record.
+**A real thermal-control experiment: 47 heater set-points, 34 IR channels, and the inverse models that learned to steer one from the other.**
 
-## Why keep it
+**Status: archive.** This is a sanitised snapshot, not a maintained project. The bench is gone, so nothing runs end-to-end; what survives is the control loop, the surrogate models and an analytical ground truth.
 
-This is not a simulation with a known plant. A 2-D heated plate is driven through Modbus set-points and measured through an IR sensor socket, and its 47→34 response is learned from the hardware itself. The repository contains the whole attempt: online least squares, neural surrogates, direct optimisation, and the analytical solution used as a reference.
+## Quick start
 
-That makes it useful as a worked example of inverting a diffusion plant when the forward model is expensive and the measurements are noisy — including the paths that did not become the final answer. The notes preserve the search itself: `Untitled3.ipynb` compares `least_squares` configurations and records `dogbox` + 2-point + Huber as the fastest per evaluation, and `trf` + 3-point + linear as the lowest final loss.
+There is no end-to-end demo. The one self-contained artifact is the analytical notebook:
+
+```bash
+python -m pip install numpy scipy matplotlib jupyter
+jupyter lab closed_form.ipynb
+```
+
+The differentiable solver cell also needs `torch`. The notebook ships without stored outputs; some cells integrate over time and are slow.
+
+Every hardware script needs the original bench: a Modbus TCP PLC, an IR sensor socket, capture files (`ixy`, `ixy2`, `in.ixy`) and, for `__main__.py`, HALCON, the HIKROBOT MVS SDK, MinIO, MQTT and an ffmpeg build with `h264_qsv`. None of those are in this repository.
+
+## What it can do now
+
+- **Reconstruct the loop.** `disk.py` probes one heater at a time, fits a linear 47→34 response, and steps toward the target field.
+- **Compare inversion strategies.** The archive keeps online least squares, direct `scipy.optimize.least_squares`, PyTorch RNN/LSTM surrogates, and scikit-learn experiments side by side.
+- **Check learned models against analysis.** `closed_form.ipynb` gives the transient, steady-state and differentiable Green's-function solutions for the same diffusion-decay PDE.
+- **Inspect the camera pipeline.** `__main__.py` shows HIKROBOT capture → HALCON inspection → MQTT job messages → MinIO upload.
+- **Read the search, not just the result.** `Untitled3.ipynb` records an optimizer sweep: `dogbox` + 2-point + Huber was fastest per evaluation, while `trf` + 3-point + linear reached the lowest final loss.
+
+## Architecture
+
+The archive contains two independent stacks: the thermal loop and the camera/object-storage prototype.
 
 ```mermaid
 flowchart LR
@@ -21,49 +44,23 @@ flowchart LR
   E --> A
 ```
 
-## What is inside
+| Area | Files | Role | Standalone? |
+|---|---|---|---|
+| Thermal control | `disk.py`, `disk0.py`, `disk1.py`, `disk2.py` | Online linear probing, RNN/LSTM surrogates, direct least-squares inversion. | No — needs the bench or capture files. |
+| Analytical reference | `closed_form.ipynb` | Transient, steady-state and differentiable Green's-function solvers. | In principle — NumPy/SciPy/PyTorch only. |
+| Research notes | `Untitled*.ipynb` | Plate simulator, optimizer sweep, PCA and scikit-learn surrogate experiments. | Mixed — some simulator cells run alone. |
+| Camera pipeline | `tmpmv.py`, `__main__.py` | HIKROBOT GigE capture, HALCON inspection, MQTT job protocol, MinIO upload. | No — vendor SDK and services required. |
+| Utilities | `nn.py`, `tmpmodbus.py` | Running normalization; scratch Modbus/sensor loop. | `nn.py` yes; `tmpmodbus.py` no. |
+| Record | `docs/project-status.md` | Migration, sanitisation and licensing decisions. | — |
 
-| Path | What it is | Runs without the bench? |
-|---|---|---|
-| `disk.py` | Online controller: probes one heater at a time, fits a linear 47→34 model, steps toward the target field. | **No** — opens `in.ixy` and connects to the PLC/sensor at import. |
-| `disk0.py` | PyTorch RNN surrogate trained online against the memmap capture `ixy`; writes set-points back to the plate. | No |
-| `disk1.py` | LSTM surrogate trained against a simulated plate; the hardware calls are commented out. | No — still needs `ixy`. |
-| `disk2.py` | Direct `scipy.optimize.least_squares` over the 47 inputs, with cached measurements. | No |
-| `nn.py` | Tiny running-normalisation helper used by the training loops. | Yes — importable on its own. |
-| `tmpmodbus.py`, `tmpmv.py` | Scratch hardware probes (Modbus loop, HIKROBOT GigE capture to stdout). | No |
-| `__main__.py` | HALCON inspection pipeline: camera → ffmpeg/QSV → MQTT job protocol → MinIO upload. | No — needs HALCON, MVS, a config, and running services. |
-| `closed_form.ipynb` | Transient and steady-state Green's-function solvers, plus a differentiable PyTorch version. | **Yes, in principle** — NumPy/SciPy/PyTorch only; no stored outputs. |
-| `Untitled*.ipynb` | Research notes: plate simulator, `least_squares` parameter sweep, PCA and scikit-learn surrogate experiments. | Mixed — some simulator cells are standalone; data cells need `ixy` / `ixy2`. |
-| `docs/project-status.md` | Migration, sanitisation and licensing record. | — |
-| `LICENSE` | AGPL-3.0-only. | — |
+## How to develop
 
-No capture files (`.xlsx`, `.csv`, images, `.mp4`, `ixy`, `ixy2`, `in.ixy`) are included. The scripts that read them cannot be re-run without the original bench.
+There is no build step, package metadata, lockfile or test suite. The repository is plain Python and notebooks.
 
-## Running it
-
-There is no zero-to-running path. Every hardware script expects a private bench network, a Modbus TCP PLC, an IR sensor socket, the capture files above and — for `__main__.py` — MVTec HALCON, the HIKROBOT MVS SDK, a MinIO server, an MQTT broker and an ffmpeg build with `h264_qsv`. None of those are in this repository.
-
-The one artifact worth opening is `closed_form.ipynb`:
-
-```bash
-python -m pip install numpy scipy matplotlib jupyter
-jupyter lab closed_form.ipynb
-```
-
-It solves the same diffusion-decay PDE analytically instead of learning it. The notebook ships without stored outputs; work through it from the top. Some cells are deliberately expensive (the transient solver integrates over time), so expect to wait. The differentiable cell also needs `torch`.
-
-The analytical API, defined in that notebook, has this shape:
-
-```python
-sources = [(0.0, 0.0, 100.0, 1.0), (1.0, 0.0, 50.0, 0.5)]  # x, y, T, coupling
-T = temperature_steady(0.1, 0.0, sources, kappa=1e-4, h_env=1e-3)
-```
-
-`temperature_steady` returns the steady-state temperature at the query point with both thermostats coupled; `temperature` does the transient version, and `temperature_steady_pt` is the differentiable PyTorch equivalent.
-
-## Dependencies
-
-Versions were not recorded and there is no lockfile. This list is reconstructed from imports.
+- Use Python 3 and Jupyter.
+- Start with the analytical notebook; it has no hardware dependencies.
+- Do not import `disk*.py`, `tmpmodbus.py`, `tmpmv.py` or `__main__.py` casually: they open files, memmaps or hardware connections at import time.
+- Versions were not recorded. This dependency list is reconstructed from imports.
 
 | Dependency | Used by |
 |---|---|
@@ -79,6 +76,32 @@ Versions were not recorded and there is no lockfile. This list is reconstructed 
 | HIKROBOT MVS SDK | `tmpmv.py`, `__main__.py` (external, not in this repo) |
 | ffmpeg with `h264_qsv` | `__main__.py` |
 
+There is no CI. Validate notebook cells and documentation links by hand.
+
+## How to contribute
+
+This is an archive, not a maintained product. Factual corrections are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the short policy. Do not submit hardware-specific patches you cannot test, and do not reintroduce redacted hosts or credentials.
+
+## Roadmap
+
+### Implemented
+
+- Sanitised, licensed and documented archive.
+- Complete control-loop code: online linear probing, RNN/LSTM surrogates, direct least-squares inversion.
+- Analytical Green's-function notebook with transient, steady-state and differentiable solvers.
+- Camera/object-storage prototype preserved with vendor SDK boundaries stated.
+- Migration record covering removals, redactions and earlier documentation corrections.
+
+### Planned
+
+- No feature work. This repository is closed as an archive.
+- Maintenance only: fix factual errors and keep the record accurate.
+- Owner action, not a code change: if the removed MinIO key pair is still live, rotate it.
+
+## Future vision
+
+This repository is not trying to become a framework. Its long-term value is as a compact reference for inverting a real diffusion plant when the forward model is expensive and the measurements are noisy: the analytical check, the probing controller, the learned surrogates and the optimizer sweep are all in one place. If the bench is ever revived, the natural next step would be a small, import-safe package around the closed-form solver with bench-free tests. That is a separate project, not a promise here.
+
 ## Sanitisation
 
 This tree was migrated from a private archive. No credential value survives here.
@@ -86,16 +109,6 @@ This tree was migrated from a private archive. No credential value survives here
 > **Credential warning:** `__main__.py` previously contained a literal MinIO access-key/secret-key pair. It was removed and replaced with `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` environment lookups. If you own the original deployment, rotate that key pair.
 
 Internal hostnames and private IPs were replaced with `<REDACTED:...>` placeholders in `disk.py`, `disk0.py`, `disk1.py`, `disk2.py`, `tmpmodbus.py` and `Untitled-Copy1.ipynb`. Loopback references use `localhost`; no real internal address remains. Employer-internal MQTT topic names were genericised. The five generated HIKROBOT MVS binding files that shipped with the original tree were removed as third-party code.
-
-## Status
-
-| Done | Not done | Next |
-|---|---|---|
-| Sanitised, licensed, documented; analytical reference preserved. | No runnable demo, no tests, no packaging, no data, no dependency lockfile. | Nothing planned — this is an archive. |
-
-## Contributing
-
-There is no roadmap and no support. If you find a factual error in this record, open an issue. Do not send hardware-specific patches you cannot test.
 
 ## License
 
