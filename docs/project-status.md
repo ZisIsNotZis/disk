@@ -21,7 +21,7 @@ Kept for reference only. It never became a project: no tests, no packaging, no d
 ## What can be executed
 
 - `nn.py` — importable; it only defines `Scale`.
-- `closed_form.ipynb` — the analytical transient, steady-state and differentiable solvers are self-contained in principle (NumPy / SciPy / PyTorch), with no lab hardware required. The notebook has no stored outputs and was not re-executed during migration. Some cells are expensive by construction.
+- `closed_form.ipynb` — the analytical transient, steady-state and differentiable solvers are self-contained in principle (NumPy / SciPy / PyTorch), with no lab hardware required. The notebook has no stored outputs and was not re-executed during migration. Some cells are expensive by construction. It does not run top-to-bottom as shipped: the plotting cell `plt.imshow(o[-1])` references a variable `o` left over from the original scratch session, so run the function cells individually.
 - `Untitled*.ipynb` — the simulator cells can run standalone; the cells that read `ixy` / `ixy2` cannot.
 - **Correction:** `disk.py` is not import-safe. Its module-level code opens `in.ixy` and connects to the Modbus PLC and sensor socket on import. The same applies to `disk0.py`, `disk1.py`, `disk2.py`, `tmpmodbus.py` and `__main__.py`, which all execute hardware or file setup at import time.
 - No end-to-end entrypoint exists. The scripts need the private bench network, capture files, a MVTec HALCON licence, the HIKROBOT MVS SDK, a MinIO server, an MQTT broker and an ffmpeg build with Intel QSV.

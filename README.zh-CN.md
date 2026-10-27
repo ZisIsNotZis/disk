@@ -12,14 +12,14 @@
 
 ## 快速开始
 
-这里没有端到端演示。唯一能独立打开的产物是解析解笔记本：
+这里没有端到端演示。最干净的独立产物是解析解笔记本：
 
 ```bash
 python -m pip install numpy scipy matplotlib jupyter
 jupyter lab closed_form.ipynb
 ```
 
-可微求解器单元还需要 `torch`。笔记本没有预存输出；部分单元需要对时间做积分，会比较慢。
+可微求解器单元还需要 `torch`。笔记本没有预存输出；部分单元需要对时间做积分，会比较慢。请逐个单元运行：开头那个 `plt.imshow(o[-1])` 绘图单元是原始会话留下的草稿（`o` 从未定义），执行会抛 `NameError`；真正的内容是它前后的格林函数单元。
 
 所有硬件脚本都依赖原来的实验台：Modbus TCP PLC、红外传感器 socket、采集文件（`ixy`、`ixy2`、`in.ixy`）；`__main__.py` 还需要 HALCON、HIKROBOT MVS SDK、MinIO、MQTT，以及带 `h264_qsv` 的 ffmpeg。这些都不在仓库里。
 

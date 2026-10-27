@@ -12,14 +12,14 @@
 
 ## Quick start
 
-There is no end-to-end demo. The one self-contained artifact is the analytical notebook:
+There is no end-to-end demo. The cleanest self-contained artifact is the analytical notebook:
 
 ```bash
 python -m pip install numpy scipy matplotlib jupyter
 jupyter lab closed_form.ipynb
 ```
 
-The differentiable solver cell also needs `torch`. The notebook ships without stored outputs; some cells integrate over time and are slow.
+The differentiable solver cell also needs `torch`. The notebook ships without stored outputs; some cells integrate over time and are slow. Run it cell by cell: the small `plt.imshow(o[-1])` cell is leftover scratch from the original session (`o` is never defined), so it raises `NameError` — the Green's-function cells around it are the content.
 
 Every hardware script needs the original bench: a Modbus TCP PLC, an IR sensor socket, capture files (`ixy`, `ixy2`, `in.ixy`) and, for `__main__.py`, HALCON, the HIKROBOT MVS SDK, MinIO, MQTT and an ffmpeg build with `h264_qsv`. None of those are in this repository.
 
